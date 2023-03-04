@@ -25,6 +25,7 @@
 // AngleAdjuster        digital_out   C               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
+
 #include "vex.h"
 #include <iostream> 
 #include <string>
@@ -32,6 +33,7 @@
 #include <cmath>
 
 using namespace vex;
+
 
 competition Competition;
 
@@ -59,7 +61,6 @@ double intertial_error=0,intertial_prevError=0,intertial_totalError=0;
 int desiredDirection=0;
 
 int maxPIDPercent = 80;
-
 
 int PID_running(){
   WheelLF.spin(forward);
@@ -98,7 +99,7 @@ int PID_running(){
     prevError=error;
     intertial_prevError=intertial_error;
 
-    task::sleep(10);
+    task::sleep(20);
   }
   return 0;
 }
@@ -141,8 +142,6 @@ void angleAdjusterSwitch(){
   angleAdjuster = !angleAdjuster;
 }
 
-
-
 int test(){
   while(1){
     // Brain.Screen.print(WheelLF.position(degrees));
@@ -157,7 +156,7 @@ int test(){
     // Brain.Screen.print(" ");
     // Brain.Screen.print(WheelRB.position(degrees));
     // Brain.Screen.print(" ");
-    Brain.Screen.print(Flywheel.velocity(rpm));
+    Brain.Screen.print(flywheelOn);
     task::sleep(200);
     Brain.Screen.clearLine();
   }
@@ -167,20 +166,19 @@ bool intakeState = false;
 bool indexerState = false;
 bool slowMode = false;
 bool die = false;
+
 int robotDaemon() {
   while(1){
-            if (intakeState) {
-              Intake.spin(forward);
-            } 
-            else if (indexerState) {
-              Intake.spin(reverse);
-            } else {
-              Intake.stop();
-            }
+     if (intakeState) {
+        Intake.spin(forward);
+     } else if (indexerState) {
+        Intake.spin(reverse);
+     } else {
+        Intake.stop();
+     }
             if(slowMode){
-              KP = originalKP/2.5;
+              KP = originalKP/1.5;
               KD = 0;
-
             } else{
               KP=originalKP;
               KD=originalKD;
@@ -188,9 +186,7 @@ int robotDaemon() {
             if(die){
               break;
             }
-            task::sleep(10);
-     
-
+            task::sleep(20);
   }
   return 0;
 }
@@ -208,6 +204,7 @@ void preAuton(){
   WheelRB.setPosition(0,degrees);
 
   Intake.setMaxTorque(100, percent);
+  Intake.setVelocity(100, percent);
 
   WheelLF.setStopping(brake);
   WheelLM.setStopping(brake);
@@ -216,6 +213,7 @@ void preAuton(){
   WheelRM.setStopping(brake);
   WheelRB.setStopping(brake);
 
+  Flywheel.setVelocity(65, percent);
   Flywheel.setMaxTorque(100, percent);
   PID_enable = true;
   Flywheel.setStopping(coast);
@@ -235,7 +233,6 @@ void shoot3(){
   indexerState = false;
 }
 
-
 int endgameRumble(){
   while(69){
       if(Brain.Timer.value()>=95 && Brain.Timer.value()<=102){
@@ -248,7 +245,6 @@ int endgameRumble(){
   }
   return 0;
 }
-
 
 void Autonomous(){
   preAuton();
@@ -263,19 +259,20 @@ void Autonomous(){
 
 //Auto in front with voltage
 if(false){
-      Flywheel.spin(forward, 11, volt);
+      
+      Flywheel.spin(forward, 12, volt);
       move(2, 500);
       intakeState = true;
       vex::task::sleep(280);
       intakeState = false;
       move(-4, 600);
 
+      vex::task::sleep(500);
       turnTo(-11, 1500);
-      vex::task::sleep(1000);
       indexerState = true;
       vex::task::sleep(150);
       indexerState = false;
-      Flywheel.spin(forward, 11, volt);
+      Flywheel.spin(forward, 12, volt);
       vex::task::sleep(600);
       indexerState = true;
       vex::task::sleep(250);
@@ -283,38 +280,120 @@ if(false){
 
       Flywheel.spin(forward, 5, volt);
       vex::task::sleep(500);
-      turnTo(-130, 1000);
+      turnTo(-133, 1000);
       intakeState = true;
       move(34, 1000);
       slowMode = true;
       move(25, 700);
+      Flywheel.spin(forward, 8, volt);
       slowMode = false;
       turnTo(-135, 1000);
-      move(37, 1000);
-      Flywheel.spin(forward, 10, volt);
-      vex::task::sleep(1000);
-      Flywheel.spin(forward, 10.5, volt);
+      move(20, 800);
+      Flywheel.spin(forward, 9, volt);
 
-      turnTo(-45, 1000);
-      move(-17, 700);
-      intakeState = false;
-      vex::task::sleep(200);
+
+      move(-20, 700);
+      turnTo(-32, 1000);
+      move(-12, 1000);
+      intakeState=false;
+      turnTo(-35, 1000);
       indexerState = true;
       vex::task::sleep(150);
       indexerState = false;
-      Flywheel.spin(forward, 9, volt);
+      Flywheel.spin(forward, 11, volt);
       vex::task::sleep(700);
       indexerState = true;
       vex::task::sleep(150);
       indexerState = false;
 
-      Flywheel.spin(forward, 10, volt);
+      Flywheel.spin(forward, 12, volt);
       vex::task::sleep(700);
       indexerState = true;
       vex::task::sleep(200);
       indexerState = false;
 
       die = true;
+
+}
+
+//Shoot first in front!!!
+if(false){
+  Flywheel.spin(forward, 12, volt);
+  vex::task::sleep(3500);
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+  vex::task::sleep(800);
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+  turnTo(8, 700);
+  Flywheel.spin(forward, 5, volt);
+  move(2, 500);
+
+  intakeState = true;
+  vex::task::sleep(200);
+  intakeState = false;
+
+  move(-5, 600);
+  turnTo(-125, 1000);
+  intakeState = true;
+  move(35, 600);
+  maxPIDPercent = 40;
+  move(23, 600);
+  maxPIDPercent = 80;
+  Flywheel.spin(forward, 9, volt);
+  vex::task::sleep(1500);
+  turnTo(-23, 700);
+  intakeState = false;
+  Flywheel.spin(forward, 9.6, volt);
+  vex::task::sleep(1000);
+
+
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+  Flywheel.spin(forward, 11, volt);
+  vex::task::sleep(700);
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+  vex::task::sleep(700);
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+
+
+
+  die = true;
+
+
+
+}
+
+//Shoot first not in front !!!
+if(true){
+  intakeState = true;
+  Flywheel.spin(forward, 11, volt);
+  maxPIDPercent = 40;
+  move(43, 1000);
+  vex::task::sleep(1000);
+    maxPIDPercent = 80;
+  turnTo(182, 3000);
+  intakeState = false;
+  vex::task::sleep(200);
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+  vex::task::sleep(700);
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+  vex::task::sleep(700);
+  indexerState = true;
+  vex::task::sleep(200);
+  indexerState = false;
+
 
 }
 
@@ -325,7 +404,7 @@ if(false){
   Flywheel.spin(forward, 11.3, volt);
   move(35, 1000);
   turnTo(90, 1500);
-  move(5, 1500);
+  move(5, 1000);
   intakeState = true;
   vex::task::sleep(355);
   intakeState = false;
@@ -340,16 +419,16 @@ if(false){
   indexerState = true;
   vex::task::sleep(250);
   indexerState = false;
-  Flywheel.spin(forward, 0, volt);
+  Flywheel.spin(forward, 5, volt);
 
   turnTo(220, 700);
   Flywheel.spin(forward, 9, volt);
   intakeState = true;
-  move(62, 700);
+  move(62, 1000);
   turnTo(225, 1000);
-  move(70, 700);
+  move(30, 1000);
 
-  turnTo(132, 1000);
+  turnTo(132, 1500);
   intakeState = false;
   Flywheel.spin(forward, 10.5, volt);
   vex::task::sleep(200);
@@ -447,12 +526,14 @@ if(false){
   intakeState = true;
   vex::task::sleep(230);
   intakeState = false;
+  die=true;
 
   
 }
 
 //New skills using match loads
-if(true) {
+if(false) {
+//3.5 s for max
 
   move(2, 500);
   intakeState = true;
@@ -523,6 +604,7 @@ void drivercontrolInit(){
   WheelRB.setStopping(brake);
 
   Intake.setMaxTorque(100, percent);
+  Intake.setVelocity(100, percent);
 
   Flywheel.setMaxTorque(100, percent);
   Flywheel.setStopping(coast);
@@ -536,11 +618,13 @@ void Drivercontrol(){
   drivercontrolInit();
   Brain.Timer.reset();
   int wheelSpeed = 100;
-  double flywheelVoltage = 8.0;
+  int flywheelVoltage = 8;
   task endgame = task(endgameRumble);
-  
+   Controller1.ButtonL1.pressed(flywheelSwitch);
+    Controller1.ButtonX.pressed(switchDrive);
+    Controller1.ButtonY.pressed(lockWheelsOn);
   //task testing = task(test);
-  while(true){
+  while(1){
     int axis3 = Controller1.Axis3.position() * wheelSpeed / 100;
     int axis1 = Controller1.Axis1.position() * wheelSpeed / 100;
     int axis2 = Controller1.Axis2.position() * wheelSpeed / 100;
@@ -576,14 +660,12 @@ void Drivercontrol(){
       Intake.stop(hold);
     }
     if(flywheelOn){
-      Flywheel.spin(forward, flywheelVoltage, volt);
+      Flywheel.spin(forward,flywheelVoltage, volt);
     } else{
-      Flywheel.stop(coast);
+      Flywheel.spin(forward, 0, volt);
     }
 
-    Controller1.ButtonL1.released(flywheelSwitch);
-    Controller1.ButtonX.released(switchDrive);
-    Controller1.ButtonY.released(lockWheelsOn);
+   
   
  if(Controller1.ButtonB.pressing() && Brain.Timer.value() >= 95) {
     expansion1.set(true);
@@ -594,10 +676,10 @@ void Drivercontrol(){
   }
   if(Controller1.ButtonRight.pressing()){
     AngleAdjuster.set(false);
-    flywheelVoltage = 8;
+    //flywheelVoltage = 8;
   } else if(Controller1.ButtonLeft.pressing()){
     AngleAdjuster.set(true);
-    flywheelVoltage = 7;
+    //flywheelVoltage = 7;
   }
     task::sleep(20);
   }
